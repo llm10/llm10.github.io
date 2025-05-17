@@ -99,6 +99,9 @@
             color: #aaa;
             cursor: pointer;
         }
+		#logo-chatgpt, #logo-grok, #logo-gemini {
+			display:none;
+		}
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
@@ -117,7 +120,11 @@
 	<div class="h_wrap">
 		<div class="h_logo">
 			<div>you asked</div>
-			<div id="logo"></div>
+			<div>
+				<img id="logo-chatgpt" src="images/chatgpt-logo.svg" height="32"/>
+				<img id="logo-grok" src="images/grok-logo.svg" height="32"/>
+				<img id="logo-gemini" src="images/gemini-logo.svg" height="32"/>
+			</div>
 		</div>
 		<div id="cur_h" class="h"></div>
 	</div>
@@ -154,7 +161,7 @@
 					console.log('data:', data)
 
 					$('head').prepend('<link rel="icon" href="images/'+data.s+'-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/'+data.s+'-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
-					$('#logo').append('<img src="images/'+data.s+'-logo.svg" height="32"/>')
+					document.getElementById('logo-'+data.s).display='inline';
 					let q = data.r[data.r.length - 2][2] // last msg pair
 					let a = data.r[data.r.length - 1][2]
 					document.title = q
@@ -175,7 +182,7 @@
 					$('body').text('Error: ' + e.message)
 					console.log('r:', r)
 				}
-				// $('#main').show()
+				$('#main').show()
 			})
 			.fail(() => {
 				$('body').text('Response not found')

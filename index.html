@@ -111,7 +111,7 @@
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script><!-- ~40 languages https://tinyurl.com/mrdhwd3p -->
-	<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"></script>
+<!--	<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"></script>-->
 	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 	<script>
 		const md = markdownit({
@@ -142,10 +142,8 @@
 	let histLoaded = false
 
 	function formatHTML(a) {
-		// console.log('pre render:', a)
-		// a = a.replace(/^\s+/gm, function(m){ return m.replace(/\s/g, '\u00A0');}); // keep leading spaces
-		// return DOMPurify.sanitize(a)
-		return DOMPurify.sanitize(md.render(a))
+		// return DOMPurify.sanitize(md.render(a)) // not needed
+		return md.render(a)
 	}
 
 	if (id) {

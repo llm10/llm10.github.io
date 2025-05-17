@@ -154,6 +154,7 @@
 					console.log('data:', data)
 
 					$('head').prepend('<link rel="icon" href="images/'+data.s+'-icon.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/'+data.s+'-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
+					$('#logo').append('<img src="'+data.s+'-logo.svg" height="33"/>')
 					let q = data.r[data.r.length - 2][2] // last msg pair
 					let a = data.r[data.r.length - 1][2]
 					document.title = q

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!--suppress JSJQueryEfficiency -->
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+<!--	<link rel="icon" href="images/gemini-icon.png"/>-->
+	<meta name="viewport" content="width=device-width,initial-scale=1"/>
+	<title>test</title>
+	<style>
+        body {
+            margin: 0;
+            padding: 8vh 0 8vh 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #111;
+            color: #f0f0f0;
+            font-family: sans-serif;
+            font-size: 16px;
+        }
+
+        a, a:visited {
+            color:white;
+        }
+
+        @media only screen and (max-width: 768px), only screen and (max-height: 768px) {
+            body {
+                padding: 10px 0 10px 0;
+            }
+        }
+
+        #main {
+            display: none;
+        }
+
+        .h_wrap, .r {
+            max-width: 736px;
+            padding: 20px;
+            background-color: #202020;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            /*white-space:pre-wrap;*/
+            line-height: 24px;
+        }
+
+        .h_wrap {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 10px;
+            /*white-space:normal;*/
+        }
+
+        .h_logo {
+            padding-right: 20px;
+            font-size: 12px;
+        }
+
+        .h {
+            padding: 20px;
+            background-color: #101010;
+            color: #AAA;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+        }
+
+        .h_wrap p {
+            margin:0;
+        }
+        .r > :first-child { /* first <p> */
+            margin-top:0;
+        }
+        .r > :last-child, .r > :last-child li:last-child :last-child { /* last <p> even if in <li> */
+            margin-bottom:0;
+        }
+        .r h1 {
+            font-size:24px
+        }
+        .r h2 {
+            font-size:20px;
+        }
+        .r h3 {
+            font-size: 16px;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+        }
+
+        #head_note {
+            margin-bottom: 20px;
+        }
+
+        #show_hist, #go_main {
+            color: #aaa;
+            cursor: pointer;
+        }
+	</style>
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script><!-- ~40 languages https://tinyurl.com/mrdhwd3p -->
+	<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
+	<script>
+		const md = markdownit({
+			html:false, /* escape non-code html */
+			breaks:true /* \n to <br> */
+		}).disable('code') /* only ```fence``` and `inline` */
+	</script>
+</head>
+<body>
+<div id="main">
+	<div class="h_wrap">
+		<div class="h_logo">
+			<div>you asked</div>
+			<div id="logo"></div>
+		</div>
+		<div id="cur_h" class="h"></div>
+	</div>
+	<div id="cur_r" class="r"></div>
+</div>
+<script>
+	let userRepo = 'llm10/r' // user/repo containing /results folder in default branch
+	let id = location.href.split('?')[1]
+	let results, nHist
+	let histLoaded = false
+
+	function formatHTML(a) {
+		// console.log('pre render:', a)
+		// a = a.replace(/^\s+/gm, function(m){ return m.replace(/\s/g, '\u00A0');}); // keep leading spaces
+		// return DOMPurify.sanitize(a)
+		return DOMPurify.sanitize(md.render(a))
+	}
+
+	if (id) {
+		$.get('https://raw.githubusercontent.com/' + userRepo + '/HEAD/results/' + id[0] + '/' + (id.length > 1 ? id[1] : '0') + '/' + id)
+			.done(r => {
+				if (!r) return
+				const bs = atob(r); // https://tinyurl.com/atob5
+				const b = new Uint8Array(bs.length);
+				for (let i = 0; i < bs.length; i++) b[i] = bs.charCodeAt(i);
+				r = new TextDecoder().decode(b);
+
+				try {
+					results = JSON.parse(r)/*
+						[
+							["u","t","question"], // user, type (text only atm), text
+							["a","t","answer"],
+						]*/
+					let q = results[results.length - 2][2] // last msg pair
+					let a = results[results.length - 1][2]
+					document.title = q
+					$('#cur_h').html(formatHTML(q))
+					$('#cur_r').html(formatHTML(a))
+					hljs.highlightAll();
+
+					nHist = (results.length - 2) / 2
+					if (location.hash === '#history') loadHistory(1);
+					if (results.length > 2) {
+						$('#main').append('<div id="foot_note" class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>')
+						$("#show_hist").click(() => {
+							if (!histLoaded) loadHistory();
+							else $("body")[0].scrollIntoView({behavior: 'smooth'})
+						})
+					}
+				} catch (e) {
+					$('body').text('Error: ' + e.message)
+					console.log('r:', r)
+				}
+				$('#main').show()
+			})
+			.fail(() => {
+				$('body').text('Response not found')
+				$('#main').show()
+			});
+	} else {
+		$('body').text('Hmm, there\'s nothing here...')
+		$('#main').show()
+	}
+
+	function loadHistory() {
+		let old_height = $(document).height(); // https://stackoverflow.com/a/21494434
+		let old_scroll = $(window).scrollTop();
+		for (let i = results.length - 1; i >= 0; i--) {
+			if (i >= results.length - 2) continue;
+			if (results[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r'+i+'"></div></div>')
+			else $('#main').prepend('<div class="r" id="r'+i+'"></div>')
+			$('#r'+i).html(formatHTML(results[i][2]))
+			hljs.highlightAll();
+		}
+
+		$('#main').prepend('<div id="head_note" class="note">Viewing chat history (' + nHist + ' item' + (nHist > 1 ? 's' : '') + '). <span id="go_main">Go to current▾</span></div>')
+		$("#go_main").click(() => {
+			$("#cur_h")[0].scrollIntoView({behavior: 'smooth'})
+		})
+		$(document).scrollTop(old_scroll + $(document).height() - old_height);
+		$("body")[0].scrollIntoView({behavior: 'smooth'})
+		histLoaded = true
+	}
+</script>
+</body>
+</html>

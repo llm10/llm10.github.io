@@ -126,9 +126,9 @@
 		<div class="h_logo">
 			<div>you asked</div>
 			<div>
-				<img id="logo-chatgpt" src="images/chatgpt-logo.svg" height="34"/>
-				<img id="logo-grok" src="images/grok-logo.svg" height="34"/>
-				<img id="logo-gemini" src="images/gemini-logo.svg" height="34"/>
+				<img id="logo-chatgpt" src="images/chatgpt-logo.svg" alt="" height="34"/>
+				<img id="logo-grok" src="images/grok-logo.svg" alt="" height="34"/>
+				<img id="logo-gemini" src="images/gemini-logo.svg" alt="" height="34"/>
 			</div>
 		</div>
 		<div id="cur_h" class="h"></div>
@@ -166,7 +166,7 @@
 					console.log('data:', data)
 
 					$('head').prepend('<link rel="icon" href="images/' + data.s + '-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/' + data.s + '-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
-					document.getElementById('logo-' + data.s).style = 'display:block';
+					document.getElementById('logo-' + data.s).style = 'display:block'; // jq append was slow
 					let q = data.r[data.r.length - 2][2] // last msg pair
 					let a = data.r[data.r.length - 1][2]
 					document.title = q

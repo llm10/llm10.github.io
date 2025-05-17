@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-<!--	<link rel="icon" href="images/gemini-icon.png"/>-->
+	<!--	<link rel="icon" href="images/gemini-icon.png"/>-->
 	<meta name="viewport" content="width=device-width,initial-scale=1"/>
 	<title>test</title>
 	<style>
@@ -20,7 +20,7 @@
         }
 
         a, a:visited {
-            color:white;
+            color: white;
         }
 
         @media only screen and (max-width: 768px), only screen and (max-height: 768px) {
@@ -67,20 +67,25 @@
         }
 
         .h_wrap p {
-            margin:0;
+            margin: 0;
         }
+
         .r > :first-child { /* first <p> */
-            margin-top:0;
+            margin-top: 0;
         }
+
         .r > :last-child, .r > :last-child li:last-child :last-child { /* last <p> even if in <li> */
-            margin-bottom:0;
+            margin-bottom: 0;
         }
+
         .r h1 {
-            font-size:24px
+            font-size: 24px
         }
+
         .r h2 {
-            font-size:20px;
+            font-size: 20px;
         }
+
         .r h3 {
             font-size: 16px;
         }
@@ -99,9 +104,10 @@
             color: #aaa;
             cursor: pointer;
         }
-		#logo-chatgpt, #logo-grok, #logo-gemini {
-			display:none;
-		}
+
+        #logo-chatgpt, #logo-grok, #logo-gemini {
+            display: none;
+        }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
@@ -110,8 +116,8 @@
 	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 	<script>
 		const md = markdownit({
-			html:false, /* escape non-code html */
-			breaks:true /* \n to <br> */
+			html: false, /* escape non-code html */
+			breaks: true /* \n to <br> */
 		}).disable('code') /* only ```fence``` and `inline` */
 	</script>
 </head>
@@ -160,8 +166,8 @@
 						]*/
 					console.log('data:', data)
 
-					$('head').prepend('<link rel="icon" href="images/'+data.s+'-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/'+data.s+'-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
-					document.getElementById('logo-'+data.s).display='';
+					$('head').prepend('<link rel="icon" href="images/' + data.s + '-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/' + data.s + '-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
+					document.getElementById('logo-' + data.s).style = 'display:block';
 					let q = data.r[data.r.length - 2][2] // last msg pair
 					let a = data.r[data.r.length - 1][2]
 					document.title = q
@@ -198,9 +204,9 @@
 		let old_scroll = $(window).scrollTop();
 		for (let i = data.r.length - 1; i >= 0; i--) {
 			if (i >= data.r.length - 2) continue;
-			if (data.r[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r'+i+'"></div></div>')
-			else $('#main').prepend('<div class="r" id="r'+i+'"></div>')
-			$('#r'+i).html(formatHTML(data.r[i][2]))
+			if (data.r[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r' + i + '"></div></div>')
+			else $('#main').prepend('<div class="r" id="r' + i + '"></div>')
+			$('#r' + i).html(formatHTML(data.r[i][2]))
 			hljs.highlightAll();
 		}
 

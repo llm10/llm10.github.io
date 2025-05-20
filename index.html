@@ -137,7 +137,7 @@
 </div>
 <script>
 	let userRepo = location.host.split('.')[0] + '/' + location.pathname.split('/')[1]
-	let id = location.href.split('?')[1]
+	let id = location.search.substring(1)
 	let data, nHist
 	let histLoaded = false
 

@@ -136,7 +136,7 @@
 	<div id="cur_r" class="r"></div>
 </div>
 <script>
-	let userRepo = 'llm10/r' // user/repo containing /results folder in default branch
+	let userRepo = location.host.split('.')[0] + '/' + location.pathname.split('/')[1]
 	let id = location.href.split('?')[1]
 	let data, nHist
 	let histLoaded = false

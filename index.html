@@ -111,13 +111,12 @@
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script><!-- ~40 languages https://tinyurl.com/mrdhwd3p -->
-<!--	<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.5/dist/purify.min.js"></script>-->
 	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 	<script>
 		const md = markdownit({
 			html: false, /* escape non-code html */
 			breaks: true /* \n to <br> */
-		}).disable('code') /* only ```fence``` and `inline` */
+		}).disable('code') /* only ```fence``` and `inline`, not indented */
 	</script>
 </head>
 <body>
@@ -141,11 +140,6 @@
 	let data, nHist
 	let histLoaded = false
 
-	function formatHTML(a) {
-		// return DOMPurify.sanitize(md.render(a)) // not needed
-		return md.render(a)
-	}
-
 	if (id) {
 		$.get('https://raw.githubusercontent.com/' + userRepo + '/HEAD/results/' + id[0] + '/' + (id.length > 1 ? id[1] : '0') + '/' + id)
 			.done(r => {
@@ -168,8 +162,8 @@
 					let q = data.r[data.r.length - 2][2] // last msg pair
 					let a = data.r[data.r.length - 1][2]
 					document.title = q
-					$('#cur_h').html(formatHTML(q))
-					$('#cur_r').html(formatHTML(a))
+					$('#cur_h').html(md.render(q))
+					$('#cur_r').html(md.render(a))
 					hljs.highlightAll();
 
 					nHist = (data.r.length - 2) / 2
@@ -203,7 +197,7 @@
 			if (i >= data.r.length - 2) continue;
 			if (data.r[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r' + i + '"></div></div>')
 			else $('#main').prepend('<div class="r" id="r' + i + '"></div>')
-			$('#r' + i).html(formatHTML(data.r[i][2]))
+			$('#r' + i).html(md.render(data.r[i][2]))
 			hljs.highlightAll();
 		}
 

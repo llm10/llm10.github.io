@@ -107,6 +107,41 @@
         #logo-chatgpt, #logo-grok, #logo-gemini {
             display: none;
         }
+
+        /* Style for the copy button */
+        .copy-button {
+            position: absolute;
+            top: 8px; /* Distance from the top of the container */
+            right: 8px; /* Distance from the right of the container */
+            background-color: #007bff; /* Blue background */
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 13px;
+            opacity: 0; /* Initially hidden */
+            transition: opacity 0.3s ease, background-color 0.3s ease; /* Smooth transitions */
+            z-index: 10; /* Ensure it's above the code content */
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        /* Show the button when the container is hovered */
+        pre:hover .copy-button,
+        code.block-code:hover .copy-button {
+            opacity: 1;
+        }
+
+        /* Button active/hover states */
+        .copy-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .copy-button:active {
+            background-color: #004085; /* Even darker on click */
+            transform: translateY(1px); /* Slight press effect */
+        }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
@@ -135,7 +170,7 @@
 	<div id="cur_r" class="r"></div>
 </div>
 <script>
-	let userRepo = location.host.split('.')[0] + '/' + location.pathname.split('/')[1]
+	let userRepo = location.pathname.indexOf("/d/code") !== -1 ? 'llm10/r' /* local dev */ : location.host.split('.')[0] + '/' + location.pathname.split('/')[1]
 	let id = location.search.substring(1)
 	let data, nHist
 	let histLoaded = false
@@ -165,6 +200,7 @@
 					$('#cur_h').html(md.render(q))
 					$('#cur_r').html(md.render(a))
 					hljs.highlightAll();
+					addCopyButtons()
 
 					nHist = (data.r.length - 2) / 2
 					if (location.hash === '#history') loadHistory(1);
@@ -199,6 +235,7 @@
 			else $('#main').prepend('<div class="r" id="r' + i + '"></div>')
 			$('#r' + i).html(md.render(data.r[i][2]))
 			hljs.highlightAll();
+			addCopyButtons()
 		}
 
 		$('#main').prepend('<div id="head_note" class="note">Viewing chat history (' + nHist + ' item' + (nHist > 1 ? 's' : '') + '). <span id="go_main">Go to current▾</span></div>')
@@ -208,6 +245,61 @@
 		$(document).scrollTop(old_scroll + $(document).height() - old_height);
 		$("body")[0].scrollIntoView({behavior: 'smooth'})
 		histLoaded = true
+	}
+
+	function addCopyButtons(){
+		// Select only <code> blocks that are children of <pre>
+		$('pre code').each(function() {
+			var $codeBlock = $(this);
+			// The container is always the parent <pre>
+			var $container = $codeBlock.parent('pre');
+
+			// If a copy button already exists within this container, skip adding another one.
+			if ($container.find('.copy-button').length > 0) {
+				return true; // Continue to the next .each() iteration
+			}
+
+			// Ensure the container has relative positioning.
+			// This is also handled by CSS, but added here for robustness.
+			if ($container.css('position') !== 'relative' && $container.css('position') !== 'absolute' && $container.css('position') !== 'fixed') {
+				$container.css('position', 'relative');
+			}
+
+			// Create the copy button element
+			var $copyButton = $('<button class="copy-button">Copy</button>');
+
+			// Append the button to the determined container
+			$container.append($copyButton);
+
+			// Click event handler for the copy button
+			$copyButton.on('click', function() {
+				var codeText = $codeBlock.text();
+
+				// Use the modern Clipboard API only. No fallback.
+				if (navigator.clipboard && navigator.clipboard.writeText) {
+					navigator.clipboard.writeText(codeText).then(function() {
+						// Success feedback
+						$copyButton.text('Copied!');
+						setTimeout(function() {
+							$copyButton.text('Copy'); // Revert text after a short delay
+						}, 2000);
+					}).catch(function(err) {
+						console.error('Failed to copy text (Clipboard API error): ', err);
+						$copyButton.text('Error!'); // Indicate failure
+						setTimeout(function() {
+							$copyButton.text('Copy');
+						}, 2000);
+					});
+				} else {
+					// If Clipboard API is not available, indicate that.
+					console.warn('Clipboard API not available in this browser/context.');
+					$copyButton.text('No API!'); // Or "Not Supported"
+					setTimeout(function() {
+						$copyButton.text('Copy');
+					}, 2000);
+				}
+			});
+		});
 	}
 </script>
 </body>

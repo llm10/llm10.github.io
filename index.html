@@ -170,7 +170,8 @@
 	<div id="cur_r" class="r"></div>
 </div>
 <script>
-	let userRepo = location.pathname.indexOf("/d/code") !== -1 ? 'llm10/r' /* local dev */ : location.host.split('.')[0] + '/' + location.pathname.split('/')[1]
+	let user = location.pathname.indexOf("/d/code") !== -1 ? 'llm10' /* local dev */ : location.host.split('.')[0]
+	let userRepo = user + '/' + user + '.github.io'
 	let id = location.search.substring(1)
 	let data, nHist
 	let histLoaded = false

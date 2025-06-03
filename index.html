@@ -217,6 +217,7 @@
 					let q = data.r[data.r.length - 2][2] // last msg pair
 					let a = data.r[data.r.length - 1][2]
 					document.title = q
+					console.log('linkifyOptions',linkifyOptions)
 					$('#cur_h').html(linkifyHtml(md.render(q), linkifyOptions))
 					$('#cur_r').html(linkifyHtml(md.render(a), linkifyOptions))
 					hljs.highlightAll();

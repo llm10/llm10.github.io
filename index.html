@@ -160,11 +160,11 @@
 			// linkify: true
 		}).disable('code') /* only ```fence``` and `inline`, not indented */
 
-		const vertexPrefix = 'https://vertexaisearch.cloud.google.com/'
+		const vertexPrefix = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/'
 		const linkifyOptions = {
 			format: {
 				url: (value, type) => {
-					return value.startsWith(vertexPrefix) ? '🔗' : value
+					return value.startsWith(vertexPrefix) ? '🔗' : value // replace displayed text
 				}
 			},
 			target: '_blank',

@@ -157,19 +157,39 @@
 		}).disable('code') /* only ```fence``` and `inline`, not indented */
 
 		const linkifyOptions = {
+			// Explicitly define format for 'url' type
 			format: {
-				url: (value, type) => 'Link' // Keep 'Link' as the displayed text
+				url: (value, type) => 'Link' // This should force "Link" as text
 			},
-			target: '_blank',
-			rel: 'noopener noreferrer',
+			// Explicitly define target for 'url' type
+			target: {
+				url: '_blank' // This should force target="_blank"
+			},
+			// Explicitly define rel for 'url' type (good practice)
+			rel: {
+				url: 'noopener noreferrer'
+			},
 			validate: {
 				url: (value, type) => {
-					// The `value` here is the raw URL string detected by linkifyjs
-					// Check if it starts with the required prefix
 					return value.startsWith('https://vertexaisearch.cloud.google.com/');
 				}
 			}
 		};
+
+		// const linkifyOptions = {
+		// 	format: {
+		// 		url: (value, type) => 'Link' // Keep 'Link' as the displayed text
+		// 	},
+		// 	target: '_blank',
+		// 	rel: 'noopener noreferrer',
+		// 	validate: {
+		// 		url: (value, type) => {
+		// 			// The `value` here is the raw URL string detected by linkifyjs
+		// 			// Check if it starts with the required prefix
+		// 			return value.startsWith('https://vertexaisearch.cloud.google.com/');
+		// 		}
+		// 	}
+		// };
 
 	</script>
 </head>

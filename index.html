@@ -156,21 +156,20 @@
 	<script>
 		const md = markdownit({
 			html: false, /* escape non-code html */
-			breaks: true, /* \n to <br> */
-			// linkify: true
+			breaks: true /* \n to <br> */
 		}).disable('code') /* only ```fence``` and `inline`, not indented */
 
-		const vertexPrefix = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/'
+		const gsPrefix = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/'
 		const linkifyOptions = {
 			format: {
 				url: (value, type) => {
-					return value.startsWith(vertexPrefix) ? '🔗' : value // replace displayed text
+					return value.startsWith(gsPrefix) ? '🔗' : value // replace displayed text
 				}
 			},
 			target: '_blank',
 			className: {
 				url: (value, type) => {
-					if (value.startsWith(vertexPrefix)) {
+					if (value.startsWith(gsPrefix)) {
 						return 'no-underline-link'
 					}
 					return null

@@ -158,19 +158,13 @@
 
 		const linkifyOptions = {
 			format: {
-				url: (value, type) => '🔗' // Keep 'Link' as the displayed text
+				url: (value, type) => {
+					return value.startsWith('https://vertexaisearch.cloud.google.com/') ? '🔗' : value
+				}
 			},
 			target: '_blank',
 			rel: 'noopener noreferrer',
-			validate: {
-				url: (value, type) => {
-					// The `value` here is the raw URL string detected by linkifyjs
-					// Check if it starts with the required prefix
-					return value.startsWith('https://vertexaisearch.cloud.google.com/');
-				}
-			}
-		};
-
+		}
 	</script>
 </head>
 <body>

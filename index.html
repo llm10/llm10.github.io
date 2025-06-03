@@ -153,7 +153,46 @@
 			breaks: true, /* \n to <br> */
 			linkify: true
 		}).disable('code') /* only ```fence``` and `inline`, not indented */
-		md.linkify.set({ format: { url: () => 'Link' }, target: '_blank' });
+
+		// Save the original link_open renderer rule
+		const defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, env, self) {
+			return self.renderToken(tokens, idx, options, env);
+		};
+
+		// Override the link_open renderer rule
+		md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+			const token = tokens[idx];
+
+			// Modify the token's children to represent your desired link text
+			// This will clear existing children (the original link text) and replace with new text token
+			token.children = [
+				Object.assign(new md.Token('text', '', 0), { content: 'Link' })
+			];
+
+			// --- NEW ADDITION START ---
+			// Add target="_blank" attribute
+			// Check if attrs array exists, if not, create it
+			if (!token.attrs) {
+				token.attrs = [];
+			}
+			// Add or update the target attribute
+			let targetExists = false;
+			for (let i = 0; i < token.attrs.length; i++) {
+				if (token.attrs[i][0] === 'target') {
+					token.attrs[i][1] = '_blank';
+					targetExists = true;
+					break;
+				}
+			}
+			if (!targetExists) {
+				token.attrs.push(['target', '_blank']);
+			}
+			// --- NEW ADDITION END ---
+
+			// Call the original renderer to generate the <a> tag attributes
+			return defaultRender(tokens, idx, options, env, self);
+		};
+
 	</script>
 </head>
 <body>

@@ -142,6 +142,10 @@
             background-color: #004085;
             transform: translateY(1px);
         }
+
+        .no-underline-link {
+            text-decoration: none !important;
+        }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
@@ -156,13 +160,22 @@
 			// linkify: true
 		}).disable('code') /* only ```fence``` and `inline`, not indented */
 
+		const vertexPrefix = 'https://vertexaisearch.cloud.google.com/'
 		const linkifyOptions = {
 			format: {
 				url: (value, type) => {
-					return value.startsWith('https://vertexaisearch.cloud.google.com/') ? '🔗' : value
+					return value.startsWith(vertexPrefix) ? '🔗' : value
 				}
 			},
-			target: '_blank'
+			target: '_blank',
+			className: {
+				url: (value, type) => {
+					if (value.startsWith(vertexPrefix)) {
+						return 'no-underline-link'
+					}
+					return null
+				}
+			}
 		}
 	</script>
 </head>

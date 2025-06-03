@@ -153,6 +153,7 @@
 			breaks: true, /* \n to <br> */
 			linkify: true
 		}).disable('code') /* only ```fence``` and `inline`, not indented */
+		md.linkify.set({ format: { url: (value, type) => 'Link' }});
 	</script>
 </head>
 <body>

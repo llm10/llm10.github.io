@@ -156,20 +156,45 @@
 
 		// Save the original link_open renderer rule
 		const defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, env, self) {
+			// Use self.renderToken to render the link_open token itself
 			return self.renderToken(tokens, idx, options, env);
 		};
+
+		// Save the original text renderer rule (needed if the link_open rule implicitly renders children)
+		const defaultTextRender = md.renderer.rules.text || function(tokens, idx, options, env, self) {
+			return self.renderToken(tokens, idx, options, env);
+		};
+
 
 		// Override the link_open renderer rule
 		md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 			const token = tokens[idx];
 
-			// Modify the token's children to represent your desired link text
-			// This will clear existing children (the original link text) and replace with new text token
-			token.children = [
-				Object.assign(new md.Token('text', '', 0), { content: 'Link' })
-			];
+			// --- Start Fix for md.Token issue ---
 
-			// --- NEW ADDITION START ---
+			// Clear existing children that would be the original link text
+			token.children = [];
+
+			// Create a new text token object with the desired content and push it as a child
+			const newTextToken = {
+				type: 'text',
+				tag: '', // Text tokens don't have HTML tags
+				attrs: null,
+				map: null,
+				level: token.level + 1, // Children are one level deeper than parent
+				children: null,
+				content: 'Link', // The desired text for the link
+				markup: '',
+				info: '',
+				meta: null,
+				block: false,
+				hidden: false
+			};
+			token.children.push(newTextToken);
+
+			// --- End Fix for md.Token issue ---
+
+
 			// Add target="_blank" attribute
 			// Check if attrs array exists, if not, create it
 			if (!token.attrs) {
@@ -187,9 +212,13 @@
 			if (!targetExists) {
 				token.attrs.push(['target', '_blank']);
 			}
-			// --- NEW ADDITION END ---
+			// --- END ADDITION ---
+
 
 			// Call the original renderer to generate the <a> tag attributes
+			// The default `link_open` rule *only* renders the opening `<a>` tag and its attributes.
+			// The *content* between `<a>` and `</a>` is handled by rendering the token's `children`.
+			// By modifying `token.children`, we ensure the default rendering process uses our 'Link' text.
 			return defaultRender(tokens, idx, options, env, self);
 		};
 

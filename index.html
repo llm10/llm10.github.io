@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1"/>
 	<title></title>
+	<!--suppress CssUnusedSymbol -->
 	<style>
         body {
             margin: 0;
@@ -63,6 +64,9 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             font-size: 16px;
+        }
+        .h a, .h a:visited {
+            color: inherit;
         }
 
         .h_wrap p {
@@ -153,6 +157,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/linkifyjs@4.3.1/dist/linkify.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/linkify-html@4.3.1/dist/linkify-html.min.js"></script>
+	<!--suppress JSUnusedLocalSymbols -->
 	<script>
 		const md = markdownit({
 			html: false, /* escape non-code html */

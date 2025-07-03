@@ -366,7 +366,9 @@
 		for (let i = 0; i < c.length; i++) {
 			let u = new URL(c[i])
 			let t = u.hostname.replace(/^www\./, '')
-			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px;"><img alt="" style="height:18px;width:18px;vertical-align:middle;" src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' + u.origin + '&size=32" /></a>' // or e.g. http://www.google.com/s2/favicons?domain=x.com
+			// let f = 'https://icons.duckduckgo.com/ip3/' + u.hostname + '.ico'
+			let f = 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' + u.origin + '&size=32' // or e.g. http://www.google.com/s2/favicons?domain=x.com
+			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px;"><img alt="" style="height:18px;width:18px;vertical-align:middle;" src="'+f+'" "/></a>'
 		}
 		h += '</span>';
 		jqElement.append('<p>' + h + '</p>')

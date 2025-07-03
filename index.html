@@ -151,6 +151,19 @@
         .no-underline-link {
             text-decoration: none !important;
         }
+
+        .sources-btn {
+            background-color: #313131;
+            padding: 5px 8px;
+            border: 1px solid #414141;
+            border-radius: 10px;
+            margin-right: 8px;
+            cursor: pointer;
+			font-size: 15px;
+        }
+		.sources-btn:hover {
+            background-color: #414141;
+		}
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
@@ -347,12 +360,13 @@
 
 	function addSources(c, jqElement) {
 		if (!c || !c.length) return
-		let h = 'Sources: ';
+		let h = '<span class="sources-btn">Sources</span><span style="display:none">';
 		for (let i = 0; i < c.length; i++) {
 			let u = new URL(c[i])
 			let t = u.hostname.replace(/^www\./, '')
 			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px;"><img alt="" style="height:18px;width:18px;vertical-align:middle;" src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' + u.origin + '&size=32" /></a>' // or e.g. http://www.google.com/s2/favicons?domain=x.com
 		}
+		h += '</span>';
 		jqElement.append('<p>' + h + '</p>')
 		jqElement.find('p').last().find('a').on('click', function () { // https://stackoverflow.com/q/44064699
 			let $this = $(this);
@@ -362,6 +376,9 @@
 			}, 1);
 		});
 		jqElement.tooltip();
+		jqElement.find('.sources-btn').on('click', function () {
+			$(this).next().toggle();
+		})
 	}
 </script>
 </body>

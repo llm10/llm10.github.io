@@ -222,11 +222,11 @@
 						s:"ChatGPT", // service name
 						m:"gpt-4o-mini", // model
 						t:123456789, // time
-						r:[ // results/messages, deprecated
+						r:[ // deprecated
 							["u","t","question"], // user, type (text only atm), text
 							["a","t","answer"],
 						]
-						// results/messages, new
+						// new
 						r:[{role:"u",text:"text"}, {role:"a",text:"text",sources:[]}]
 						*/
 					console.log('data:', data)

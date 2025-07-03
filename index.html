@@ -65,6 +65,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             font-size: 16px;
         }
+
         .h a, .h a:visited {
             color: inherit;
         }
@@ -152,6 +153,8 @@
         }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script><!-- ~40 languages https://tinyurl.com/mrdhwd3p -->
 	<script src="https://cdn.jsdelivr.net/npm/markdown-it@14.1.0/dist/markdown-it.min.js"></script>
@@ -216,22 +219,31 @@
 
 				try {
 					data = JSON.parse(r)/*
-						[
+						s:"ChatGPT", // service name
+						m:"gpt-4o-mini", // model
+						t:123456789, // time
+						r:[ // results/messages, deprecated
 							["u","t","question"], // user, type (text only atm), text
 							["a","t","answer"],
-						]*/
+						]
+						// results/messages, new
+						r:[{role:"u",text:"text"}, {role:"a",text:"text",sources:[]}]
+						*/
 					console.log('data:', data)
 					data.s_lc = data.s.toLowerCase()
 					$('head').prepend('<link rel="icon" href="images/' + data.s_lc + '-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/' + data.s_lc + '-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
 					document.getElementById('logo-' + data.s_lc).style = 'display:block'; // jq append was slow
-					let q = data.r[data.r.length - 2][2] // last msg pair
-					let a = data.r[data.r.length - 1][2]
+
+					let q = data.r[data.r.length - 2].text || data.r[data.r.length - 2][2] // [2] deprecated
+					let a = data.r[data.r.length - 1].text || data.r[data.r.length - 1][2]
+
 					document.title = q
-					console.log('linkifyOptions',linkifyOptions)
+					console.log('linkifyOptions', linkifyOptions)
 					$('#cur_h').html(linkifyHtml(md.render(q), linkifyOptions))
 					$('#cur_r').html(linkifyHtml(md.render(a), linkifyOptions))
 					hljs.highlightAll();
 					addCopyButtons()
+					if (data.r[data.r.length - 1].sources) addSources(data.r[data.r.length - 1].sources, $('#cur_r'))
 
 					nHist = (data.r.length - 2) / 2
 					if (location.hash === '#history') loadHistory(1);
@@ -262,12 +274,13 @@
 		let old_scroll = $(window).scrollTop();
 		for (let i = data.r.length - 1; i >= 0; i--) {
 			if (i >= data.r.length - 2) continue;
-			if (data.r[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r' + i + '"></div></div>')
+			if (data.r[i].role === 'u' || data.r[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r' + i + '"></div></div>')
 			else $('#main').prepend('<div class="r" id="r' + i + '"></div>')
-			// $('#r' + i).html(md.render(data.r[i][2]))
-			$('#r' + i).html(linkifyHtml(md.render(data.r[i][2]), linkifyOptions))
+			let r = data.r[i].text || data.r[i][2] // [2] deprecated
+			$('#r' + i).html(linkifyHtml(md.render(r), linkifyOptions))
 			hljs.highlightAll();
 			addCopyButtons()
+			if (data.r[i].sources) addSources(data.r[i].sources, $('#r' + i))
 		}
 
 		$('#main').prepend('<div id="head_note" class="note">Viewing chat history (' + nHist + ' item' + (nHist > 1 ? 's' : '') + '). <span id="go_main">Go to current▾</span></div>')
@@ -279,9 +292,9 @@
 		histLoaded = true
 	}
 
-	function addCopyButtons(){
+	function addCopyButtons() {
 		// Select only <code> blocks that are children of <pre>
-		$('pre code').each(function() {
+		$('pre code').each(function () {
 			var $codeBlock = $(this);
 			// The container is always the parent <pre>
 			var $container = $codeBlock.parent('pre');
@@ -304,21 +317,21 @@
 			$container.append($copyButton);
 
 			// Click event handler for the copy button
-			$copyButton.on('click', function() {
+			$copyButton.on('click', function () {
 				var codeText = $codeBlock.text();
 
 				// Use the modern Clipboard API only. No fallback.
 				if (navigator.clipboard && navigator.clipboard.writeText) {
-					navigator.clipboard.writeText(codeText).then(function() {
+					navigator.clipboard.writeText(codeText).then(function () {
 						// Success feedback
 						$copyButton.text('Copied!');
-						setTimeout(function() {
+						setTimeout(function () {
 							$copyButton.text('Copy'); // Revert text after a short delay
 						}, 2000);
-					}).catch(function(err) {
+					}).catch(function (err) {
 						console.error('Failed to copy text (Clipboard API error): ', err);
 						$copyButton.text('Error!'); // Indicate failure
-						setTimeout(function() {
+						setTimeout(function () {
 							$copyButton.text('Copy');
 						}, 2000);
 					});
@@ -326,12 +339,31 @@
 					// If Clipboard API is not available, indicate that.
 					console.warn('Clipboard API not available in this browser/context.');
 					$copyButton.text('No API!'); // Or "Not Supported"
-					setTimeout(function() {
+					setTimeout(function () {
 						$copyButton.text('Copy');
 					}, 2000);
 				}
 			});
 		});
+	}
+
+	function addSources(c, jqElement) {
+		if (!c || !c.length) return
+		let h = 'Sources: ';
+		for (let i = 0; i < c.length; i++) {
+			let u = new URL(c[i])
+			let t = u.hostname.replace(/^www\./, '')
+			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px"><img alt="" style="height:16px;width:16px;" src="https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' + u.origin + '&size=16" /></a>'
+		}
+		jqElement.append('<p>' + h + '</p>')
+		jqElement.find('p').last().find('a').on('click', function () { // https://stackoverflow.com/q/44064699
+			let $this = $(this);
+			$this.hide();
+			setTimeout(function () {
+				$this.show()
+			}, 1);
+		});
+		jqElement.tooltip();
 	}
 </script>
 </body>

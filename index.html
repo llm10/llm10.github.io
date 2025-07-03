@@ -272,7 +272,7 @@
 		let old_scroll = $(window).scrollTop();
 		for (let i = data.r.length - 1; i >= 0; i--) {
 			if (i >= data.r.length - 2) continue;
-			if (data.r[i].role === 'u' || data.r[i][0] === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r' + i + '"></div></div>')
+			if ((data.r[i].role || data.r[i][0]) === 'u') $('#main').prepend('<div class="h_wrap"><div class="h" id="r' + i + '"></div></div>') // [0] deprecated
 			else $('#main').prepend('<div class="r" id="r' + i + '"></div>')
 			let r = data.r[i].text || data.r[i][2] // [2] deprecated
 			$('#r' + i).html(linkifyHtml(md.render(r), linkifyOptions))

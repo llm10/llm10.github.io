@@ -159,11 +159,13 @@
             border-radius: 10px;
             margin-right: 8px;
             cursor: pointer;
-			font-size: 15px;
+            font-size: 15px;
+            transition: background-color 50ms linear;
         }
-		.sources-btn:hover {
+
+        .sources-btn:hover {
             background-color: #414141;
-		}
+        }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
@@ -375,7 +377,7 @@
 				$this.show()
 			}, 1);
 		});
-		jqElement.tooltip();
+		jqElement.tooltip({show: false, hide: false});
 		jqElement.find('.sources-btn').on('click', function () {
 			$(this).next().toggle();
 		})

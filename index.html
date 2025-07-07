@@ -238,11 +238,13 @@
 						m:"grok-3-mini", // model
 						t:123456789, // time
 						r:[ // deprecated
-							["u","t","question"], // user, type (text only atm), text
-							["a","t","answer"],
+							["u","t","text"], // user, type, text
+							["a","t","text"]
 						]
-						// new
-						r:[{role:"u",text:"text"}, {role:"a",text:"text",sources:[]}]
+						r:[ // new
+							{role:"u",text:"text"},
+							{role:"a",text:"text",sources:[]}
+						]
 						*/
 					console.log('data:', data)
 					data.s_lc = data.s.toLowerCase()

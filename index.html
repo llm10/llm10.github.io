@@ -158,13 +158,14 @@
             border: 1px solid #414141;
             border-radius: 10px;
             margin-right: 8px;
-            cursor: pointer;
+            /*cursor: pointer;*/
+            cursor: default;
             font-size: 15px;
             transition: background-color 50ms linear;
         }
 
         .sources-btn:hover {
-            background-color: #414141;
+            /*background-color: #414141;*/
         }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -362,7 +363,7 @@
 		});
 	}
 
-	function addSources(c, jqElement) {
+	function addSources(c, jqEl) {
 		if (!c || !c.length) return
 		// let h = ''
 		let h = '<span class="sources-btn">Sources</span><span style="display:none">'
@@ -375,19 +376,19 @@
 			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px;"><img alt="" style="height:18px;width:18px;vertical-align:middle;" src="'+f+'" "/></a>'
 		}
 		h += '</span>'
-		jqElement.append('<p>' + h + '</p>')
-		jqElement.find('p').last().find('a').on('click', function () { // display fix https://stackoverflow.com/q/44064699
+		jqEl.append('<p>' + h + '</p>')
+		jqEl.find('p').last().find('a').on('click', function () { // display fix https://stackoverflow.com/q/44064699
 			let $this = $(this);
 			$this.hide();
 			setTimeout(function () {
 				$this.show()
 			}, 1)
 		})
-		// jqElement.find('.sources-btn').on('click', function () {
-		jqElement.find('.sources-btn').hover(function () {
+		// jqEl.find('.sources-btn').on('click', function () {
+		jqEl.find('.sources-btn').hover(function () {
 			$(this).next().show()
 		})
-		jqElement.tooltip({show: false, hide: false})
+		jqEl.tooltip({show: false, hide: false})
 	}
 </script>
 </body>

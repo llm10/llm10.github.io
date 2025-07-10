@@ -366,7 +366,7 @@
 	function addSources(c, jqEl) {
 		if (!c || !c.length) return
 		// let h = ''
-		let h = '<span class="sources-btn">Sources</span><span style="display:none">'
+		let h = '<span class="sources-btn">Sources</span><span style="display:none;">'
 		// let h = 'Sources: <span style="vertical-align:middle">'
 		for (let i = 0; i < c.length; i++) {
 			let u = new URL(c[i])
@@ -386,6 +386,7 @@
 		})
 		// jqEl.find('.sources-btn').on('click', function () {
 		jqEl.find('.sources-btn').hover(function () {
+			$(this).hide()
 			$(this).next().show()
 		})
 		jqEl.tooltip({show: false, hide: false})

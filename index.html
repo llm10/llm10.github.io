@@ -154,18 +154,47 @@
 
         .sources-btn {
             background-color: #313131;
-            padding: 5px 8px;
+            padding: 1px 8px;
             border: 1px solid #414141;
             border-radius: 10px;
             margin-right: 8px;
-            /*cursor: pointer;*/
             cursor: default;
             font-size: 15px;
-            transition: background-color 50ms linear;
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: middle;
+            max-width: 100px;
+            opacity: 1;
+            transition: max-width 0.3s ease-out,
+            padding 0.3s ease-out,
+            margin 0.3s ease-out,
+            border-width 0.3s ease-out,
+            opacity 0.3s ease-out;
+        }
+
+        .sources-btn.hidden {
+            max-width: 0;
+            padding-left: 0;
+            padding-right: 0;
+            margin-right: 0;
+            border-left-width: 0;
+            border-right-width: 0;
+            opacity: 0;
         }
 
         .sources-btn:hover {
             /*background-color: #414141;*/
+        }
+
+        .sources {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            vertical-align: middle;
+        }
+
+        .sources.show {
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
         }
 	</style>
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -366,18 +395,18 @@
 	function addSources(c, jqEl) {
 		if (!c || !c.length) return
 		// let h = ''
-		let h = '<span class="sources-btn">Sources</span><span style="display:none;">'
+		let h = '<span class="sources-btn">Sources</span><span class="sources">'
 		// let h = 'Sources: <span style="vertical-align:middle">'
 		for (let i = 0; i < c.length; i++) {
 			let u = new URL(c[i])
 			let t = u.hostname.replace(/^www\./, '')
 			// let f = 'https://icons.duckduckgo.com/ip3/' + u.hostname + '.ico'
 			let f = 'https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=' + u.origin + '&size=32' // or e.g. http://www.google.com/s2/favicons?domain=x.com
-			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px;"><img alt="" style="height:18px;width:18px;vertical-align:middle;" src="'+f+'" "/></a>'
+			h += '<a title="' + t + '" href="' + c[i] + '" target="_blank" style="margin-right:5px;"><img alt="" style="height:18px;width:18px;vertical-align:middle;" src="' + f + '" "/></a>'
 		}
 		h += '</span>'
 		jqEl.append('<p>' + h + '</p>')
-		jqEl.find('p').last().find('a').on('click', function () { // display fix https://stackoverflow.com/q/44064699
+		jqEl.find('p').last().find('a').on('click', function () { // tooltip display fix https://stackoverflow.com/q/44064699
 			let $this = $(this);
 			$this.hide();
 			setTimeout(function () {
@@ -386,8 +415,8 @@
 		})
 		// jqEl.find('.sources-btn').on('click', function () {
 		jqEl.find('.sources-btn').hover(function () {
-			$(this).hide() // TODO animation without height issues
-			$(this).next().show()
+			$(this).addClass('hidden');
+			$(this).next().addClass('show');
 		})
 		jqEl.tooltip({show: false, hide: false})
 	}

@@ -152,6 +152,8 @@
             text-decoration: none !important;
         }
 
+        body.hide-tooltips .ui-tooltip { display: none !important; }
+
         .sources-btn {
             background-color: #313131;
             padding: 1px 8px;
@@ -412,7 +414,9 @@
 		})
 		jqEl.find('.sources-btn').hover(function () {
 			$(this).addClass('hidden');
+			$('body').addClass('hide-tooltips'); // prevent tips during animation
 			$(this).next().addClass('show');
+			setTimeout(function () { $('body').removeClass('hide-tooltips'); }, 300)
 		})
 		jqEl.tooltip({show: false, hide: false})
 	}

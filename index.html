@@ -386,7 +386,7 @@
 		})
 		// jqEl.find('.sources-btn').on('click', function () {
 		jqEl.find('.sources-btn').hover(function () {
-			$(this).hide()
+			$(this).hide() // TODO animation without height issues
 			$(this).next().show()
 		})
 		jqEl.tooltip({show: false, hide: false})

@@ -1,0 +1,189 @@
+body {
+    margin: 0;
+    padding: 8vh 0 8vh 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #111;
+    color: #f0f0f0;
+    font-family: sans-serif;
+    font-size: 16px;
+}
+
+a, a:visited {
+    color: white;
+}
+
+@media only screen and (max-width: 768px), only screen and (max-height: 768px) {
+    body {
+        padding: 10px 0 10px 0;
+    }
+}
+
+#main {
+    display: none;
+}
+
+.h_wrap, .r {
+    max-width: 736px;
+    padding: 20px;
+    background-color: #202020;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    /*white-space:pre-wrap;*/
+    line-height: 24px;
+}
+
+.h_wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 10px;
+    /*white-space:normal;*/
+}
+
+.h_logo {
+    padding-right: 20px;
+    font-size: 12px;
+}
+
+.h {
+    padding: 20px;
+    background-color: #101010;
+    color: #AAA;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+}
+
+.h a, .h a:visited {
+    color: inherit;
+}
+
+.h_wrap p {
+    margin: 0;
+}
+
+.r > :first-child, .r > :first-child li:first-child :first-child { /* first <p> even if in <li> */
+    margin-top: 0;
+}
+
+.r > :last-child, .r > :last-child li:last-child :last-child { /* last <p> even if in <li> */
+    margin-bottom: 0;
+}
+
+.r h1 {
+    font-size: 24px
+}
+
+.r h2 {
+    font-size: 20px;
+}
+
+.r h3 {
+    font-size: 16px;
+}
+
+.note {
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+}
+
+#head_note {
+    margin-bottom: 20px;
+}
+
+#show_hist, #go_main {
+    color: #aaa;
+    cursor: pointer;
+}
+
+#logo-chatgpt, #logo-grok, #logo-gemini {
+    display: none;
+}
+
+/* Style for the copy button */
+.copy-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.3s ease, background-color 0.3s ease;
+    z-index: 10;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+/* Show the button when the container is hovered */
+pre:hover .copy-button,
+code.block-code:hover .copy-button {
+    opacity: 1;
+}
+
+/* Button active/hover states */
+.copy-button:hover {
+    background-color: #0056b3;
+}
+
+.copy-button:active {
+    background-color: #004085;
+    transform: translateY(1px);
+}
+
+.no-underline-link {
+    text-decoration: none !important;
+}
+
+body.hide-tooltips .ui-tooltip { display: none !important; }
+
+.sources-btn {
+    background-color: #313131;
+    padding: 1px 8px;
+    border: 1px solid #414141;
+    border-radius: 10px;
+    margin-right: 8px;
+    cursor: default;
+    font-size: 15px;
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: middle;
+    max-width: 100px;
+    opacity: 1;
+    transition: max-width 0.3s ease-out,
+    padding 0.3s ease-out,
+    margin 0.3s ease-out,
+    border-width 0.3s ease-out,
+    opacity 0.3s ease-out;
+}
+
+.sources-btn.hidden {
+    max-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin-right: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+    opacity: 0;
+}
+
+.sources {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    vertical-align: middle;
+}
+
+.sources.show {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+}

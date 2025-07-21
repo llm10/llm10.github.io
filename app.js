@@ -21,14 +21,13 @@ const linkifyOptions = {
 	}
 }
 
-let user = location.protocol === 'file:' ? 'llm10' /* local dev */ : location.host.split('.')[0]
-let userRepo = user + '/' + user + '.github.io'
+let user = location.protocol === 'file:' ? 'llm10' /* enter github username for local dev */ : location.host.split('.')[0]
 let id = location.search.substring(1)
 let data, nHist
 let histLoaded = false
 
 if (id) {
-	$.get('https://raw.githubusercontent.com/' + userRepo + '/HEAD/results/' + id[0] + '/' + (id.length > 1 ? id[1] : '0') + '/' + id)
+	$.get('https://raw.githubusercontent.com/' + user + '/' + user + '.github.io' + '/HEAD/results/' + id[0] + '/' + (id.length > 1 ? id[1] : '0') + '/' + id)
 		.done(r => {
 			if (!r) return
 			const bs = atob(r); // https://tinyurl.com/atob5

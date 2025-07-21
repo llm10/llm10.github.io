@@ -3,7 +3,7 @@ const md = markdownit({
 	breaks: true /* \n to <br> */
 }).disable('code') /* only ```fence``` and `inline`, not indented */
 
-const gsPrefix = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/'
+const gsPrefix = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/' // used to come through in the text from gemini with grounding/search enabled. not sure if still an issue
 const linkifyOptions = {
 	format: {
 		url: (value) => {

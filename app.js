@@ -64,14 +64,24 @@ if (id) {
 				if (data.r[data.r.length - 1].sources) addSources(data.r[data.r.length - 1].sources, $('#cur_r'))
 
 				nHist = (data.r.length - 2) / 2
-				if (location.hash === '#history') loadHistory(1);
+				if (location.hash === '#history') loadHistory(1)
+				let h = ''
+				if (data.m) {
+					let url, a
+					if (data.m.match(/^grok-/)) url = 'https://docs.x.ai/docs/models/' + data.m
+					else if (data.m.match(/^gemini-/)) url = 'https://ai.google.dev/gemini-api/docs/models#' + data.m
+					else if (data.m.match(/^gpt-/)) url = 'https://platform.openai.com/docs/models/' + data.m
+					if (url) a = '<a href="' + url + '" target="_blank">' + data.m + '</a>'; else a = data.m
+					h += '<div class="note">' + a + '</div>'
+				}
 				if (data.r.length > 2) {
-					$('#main').append('<div id="foot_note" class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>')
+					h += '<div class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>'
 					$("#show_hist").click(() => {
-						if (!histLoaded) loadHistory();
+						if (!histLoaded) loadHistory()
 						else $("body")[0].scrollIntoView({behavior: 'smooth'})
 					})
 				}
+				$('#main').append('<div class="note-wrap">' + h + '</div>')
 			} catch (e) {
 				$('body').text('Error: ' + e.message)
 				console.log('r:', r)

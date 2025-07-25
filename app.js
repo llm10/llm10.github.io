@@ -74,14 +74,12 @@ if (id) {
 				// 	if (url) a = '<a href="' + url + '" target="_blank">' + data.m + '</a>'; else a = data.m
 				// 	h += '<div class="note">' + a + '</div>'
 				// }
-				if (data.r.length > 2) {
-					h += '<div class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>'
-					$("#show_hist").click(() => {
-						if (!histLoaded) loadHistory()
-						else $("body")[0].scrollIntoView({behavior: 'smooth'})
-					})
-				}
+				if (data.r.length > 2) h += '<div class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>'
 				$('#main').append('<div class="note-wrap">' + h + '</div>')
+				$("#show_hist").click(() => {
+					if (!histLoaded) loadHistory()
+					else $("body")[0].scrollIntoView({behavior: 'smooth'})
+				})
 			} catch (e) {
 				$('body').text('Error: ' + e.message)
 				console.log('r:', r)

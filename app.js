@@ -66,14 +66,14 @@ if (id) {
 				nHist = (data.r.length - 2) / 2
 				if (location.hash === '#history') loadHistory(1)
 				let h = ''
-				if (data.m) {
-					let url, a
-					if (data.m.match(/^grok-/)) url = 'https://docs.x.ai/docs/models/' + data.m
-					else if (data.m.match(/^gemini-/)) url = 'https://ai.google.dev/gemini-api/docs/models#' + data.m
-					else if (data.m.match(/^gpt-/)) url = 'https://platform.openai.com/docs/models/' + data.m
-					if (url) a = '<a href="' + url + '" target="_blank">' + data.m + '</a>'; else a = data.m
-					h += '<div class="note">' + a + '</div>'
-				}
+				// if (data.m) { // still figuring out best way to show model
+				// 	let url, a
+				// 	if (data.m.match(/^grok-/)) url = 'https://docs.x.ai/docs/models/' + data.m
+				// 	else if (data.m.match(/^gemini-/)) url = 'https://ai.google.dev/gemini-api/docs/models#' + data.m
+				// 	else if (data.m.match(/^gpt-/)) url = 'https://platform.openai.com/docs/models/' + data.m
+				// 	if (url) a = '<a href="' + url + '" target="_blank">' + data.m + '</a>'; else a = data.m
+				// 	h += '<div class="note">' + a + '</div>'
+				// }
 				if (data.r.length > 2) {
 					h += '<div class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>'
 					$("#show_hist").click(() => {

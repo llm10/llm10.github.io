@@ -74,7 +74,7 @@ if (id) {
 				// 	if (url) a = '<a href="' + url + '" target="_blank">' + data.m + '</a>'; else a = data.m
 				// 	h += '<div class="note">' + a + '</div>'
 				// }
-				if (data.r.length > 2) h += '<div class="note">Results may vary based on <span id="show_hist">chat history▴</span></div>'
+				if (data.r.length > 2) h += '<div class="note-wrap"><div class="note">Results may vary based on <span id="show_hist">chat history▴</span></div></div>'
 				$('#main').append('<div class="note-wrap">' + h + '</div>')
 				$("#show_hist").click(() => {
 					if (!histLoaded) loadHistory()
@@ -109,7 +109,7 @@ function loadHistory() {
 		if (data.r[i].sources) addSources(data.r[i].sources, $('#r' + i))
 	}
 
-	$('#main').prepend('<div id="head_note" class="note">Viewing chat history (' + nHist + ' item' + (nHist > 1 ? 's' : '') + '). <span id="go_main">Go to current▾</span></div>')
+	$('#main').prepend('<div id="head_note" class="note-wrap note">Viewing chat history (' + nHist + ' item' + (nHist > 1 ? 's' : '') + '). <span id="go_main">Go to current▾</span></div>')
 	$("#go_main").click(() => {
 		$("#cur_h")[0].scrollIntoView({behavior: 'smooth'})
 	})

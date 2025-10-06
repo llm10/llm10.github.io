@@ -221,11 +221,12 @@ function mdKatex(md) {
 
 function mdKatexRule() {
 	let options = {
+		// recommended: leave $ disabled and add this to LLM system prompt: use LaTeX \[...\] and \(...\) for math
 		delimiters: [
 			{left: '\\[', right: '\\]', display: true}, // block
 			{left: '\\(', right: '\\)', display: false}, // inline
 			{left: '$$', right: '$$', display: true},
-			{left: '$', right: '$', display: false},
+			// {left: '$', right: '$', display: false}, // error prone
 		]
 	}
 	return (state, silent) => {

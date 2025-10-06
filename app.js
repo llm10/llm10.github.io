@@ -2,6 +2,7 @@ const md = markdownit({
 	html: false, /* escape non-code html */
 	breaks: true /* \n to <br> */
 }).disable('code') /* only ```fence``` and `inline`, not indented */
+md.use(mdKatex)
 
 const gsPrefix = 'https://vertexaisearch.cloud.google.com/grounding-api-redirect/' // used to come through in the text from gemini with grounding/search enabled. not sure if still an issue
 const linkifyOptions = {
@@ -18,6 +19,13 @@ const linkifyOptions = {
 			}
 			return null
 		}
+	}
+}
+
+window.MathJax = {
+	tex: {
+		inlineMath: [['$', '$'], ['\\(', '\\)']],
+		displayMath: [['$$', '$$'], ['\\[', '\\]']]
 	}
 }
 
@@ -56,11 +64,13 @@ if (id) {
 				let q = data.r[data.r.length - 2].text || data.r[data.r.length - 2][2] // [2] deprecated
 				let a = data.r[data.r.length - 1].text || data.r[data.r.length - 1][2]
 				document.title = q
+
 				console.log('linkifyOptions', linkifyOptions)
 				$('#cur_h').html(linkifyHtml(md.render(q), linkifyOptions))
 				$('#cur_r').html(linkifyHtml(md.render(a), linkifyOptions))
 				hljs.highlightAll();
 				addCopyButtons()
+
 				if (data.r[data.r.length - 1].sources) addSources(data.r[data.r.length - 1].sources, $('#cur_r'))
 
 				nHist = (data.r.length - 2) / 2
@@ -202,4 +212,50 @@ function addSources(c, jqEl) {
 		}, 300)
 	})
 	jqEl.tooltip({show: false, hide: false})
+}
+
+// custom md katex plugin
+function mdKatex(md) {
+	md.inline.ruler.after('text', 'katex_plugin', mdKatexRule());
+}
+
+function mdKatexRule() {
+	let options = {
+		delimiters: [
+			{left: '\\[', right: '\\]', display: true}, // block
+			{left: '\\(', right: '\\)', display: false}, // inline
+			{left: '$$', right: '$$', display: true},
+			{left: '$', right: '$', display: false},
+		]
+	}
+	return (state, silent) => {
+		const posMax = state.posMax
+		const pos = state.pos
+		for (const {left, right, display} of options.delimiters) {
+			if (!state.src.slice(pos).startsWith(left)) continue
+			let endPos = pos + left.length
+			while (endPos < posMax && !state.src.slice(endPos).startsWith(right)) endPos++
+			if (endPos >= posMax) continue
+			if (!silent) {
+				const mathContent = state.src.slice(pos + left.length, endPos)
+				let renderedHTML
+				try {
+					renderedHTML = katex.renderToString(mathContent, {
+						throwOnError: false,
+						output: 'mathml',
+						displayMode: display
+					})
+					const token = state.push('html_inline', '', 0)
+					token.content = renderedHTML
+				} catch (err) {
+					console.error('KaTeX rendering error:', err)
+					const token = state.push('text', '', 0)
+					token.content = `[KaTeX ERROR: ${err.message}]`
+				}
+			}
+			state.pos = endPos + right.length
+			return true
+		}
+		return false
+	}
 }

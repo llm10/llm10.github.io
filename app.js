@@ -217,7 +217,6 @@ function addSources(c, jqEl) {
 // markdown-it KaTeX Combined Plugin
 function mdKatex(md) {
 	// Register the combined function for both block and inline rule runners.
-	// The rule determines the rendering mode internally based on the delimiter.
 	md.block.ruler.after('hr', 'katex_combined', mdKatexCombinedRule());
 	md.inline.ruler.after('text', 'katex_combined', mdKatexCombinedRule());
 }
@@ -225,17 +224,16 @@ function mdKatex(md) {
 // Handles both block and inline math in a single function
 function mdKatexCombinedRule() {
 	const delimiters = [
-		{left: '\\[', right: '\\]', display: true}, // block
+		{left: '\\[', right: '\\]', display: true},
 		{left: '$$', right: '$$', display: true},
-		{left: '\\(', right: '\\)', display: false}, // inline
+		{left: '\\(', right: '\\)', display: false},
 		{left: '$', right: '$', display: false},
 	];
 
 	return (state, silent) => {
-		// Determine context once at the start
+		// Determine context: Block runner uses 'bMarks'
 		const isBlockRunner = Object.prototype.hasOwnProperty.call(state, 'bMarks');
 
-		// Block runners use line markers; Inline runners use position markers
 		const start = isBlockRunner ? state.bMarks[state.line] + state.tShift[state.line] : state.pos;
 		const posMax = isBlockRunner ? state.eMarks[state.line] : state.posMax;
 
@@ -251,7 +249,7 @@ function mdKatexCombinedRule() {
 		const {left, right, display} = delimiter;
 		const leftLen = left.length;
 		const rightLen = right.length;
-		const isDisplayMath = display; // Use the delimiter's setting to determine render mode
+		const isDisplayMath = display;
 
 		let contentStart = start + leftLen;
 		let finalEnd = -1;
@@ -260,20 +258,17 @@ function mdKatexCombinedRule() {
 
 		// --- Block (Display) Math Logic (for \[...\] and $$...$$) ---
 		if (isDisplayMath) {
-			// Block logic must run first, even if we're in the inline runner,
-			// to correctly capture multi-line math or single-line blocks.
-
-			let currentLineEnd = state.eMarks[state.line] || state.posMax; // Use max if inline runner
+			let currentLineEnd = state.eMarks[state.line] || state.posMax;
 			let searchArea = state.src.slice(contentStart, currentLineEnd);
 			let singleLineEnd = searchArea.indexOf(right);
 
 			if (isBlockRunner && singleLineEnd !== -1 && contentStart + singleLineEnd + rightLen === currentLineEnd) {
-				// Case 1: Single-line block success (e.g., $$E=mc^2$$)
+				// Case 1: Single-line block success
 				finalEnd = contentStart + singleLineEnd;
 				finalLine = state.line;
 				mathContent = state.src.slice(contentStart, finalEnd).trim();
 			} else if (isBlockRunner) {
-				// Case 2: Multi-line search (only run in the block context for clean line advancement)
+				// Case 2: Multi-line search
 				let nextLine = state.line;
 				while (++nextLine < state.lineMax) {
 					const nextLineMax = state.eMarks[nextLine];
@@ -288,15 +283,12 @@ function mdKatexCombinedRule() {
 					}
 				}
 			}
-			// If finalEnd is still -1 after block checks, it fails.
 			if (finalEnd === -1 && isBlockRunner) return false;
 
-			// If the inline runner hits a display math delimiter, it's treated like a normal inline search (Case 3)
+			// Case 3: Inline runner fallback for display delimiter
 			if (finalEnd === -1 && !isBlockRunner) {
 				let endPos = start + leftLen;
-				while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) {
-					endPos++;
-				}
+				while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) endPos++;
 				if (endPos >= state.posMax) return false;
 				finalEnd = endPos;
 				mathContent = state.src.slice(contentStart, finalEnd).trim();
@@ -307,9 +299,7 @@ function mdKatexCombinedRule() {
 		else {
 			// Find closing delimiter (always an inline search)
 			let endPos = start + leftLen;
-			while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) {
-				endPos++;
-			}
+			while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) endPos++;
 			if (endPos >= state.posMax) return false;
 
 			finalEnd = endPos;
@@ -327,14 +317,11 @@ function mdKatexCombinedRule() {
 			}
 		}
 
-		if (finalEnd === -1) return false; // Should not happen with the logic above, but for safety
+		if (finalEnd === -1) return false; // Safety check
 
 		if (silent) {
-			if (isBlockRunner) {
-				state.line = finalLine + 1;
-			} else {
-				state.pos = finalEnd + rightLen;
-			}
+			if (isBlockRunner) state.line = finalLine + 1;
+			else state.pos = finalEnd + rightLen;
 			return true;
 		}
 
@@ -343,22 +330,22 @@ function mdKatexCombinedRule() {
 			const renderedHTML = katex.renderToString(mathContent, {
 				throwOnError: false,
 				output: 'mathml',
-				displayMode: display // Uses the delimiter's setting (true for $$, \[)
+				displayMode: display
 			});
 
 			const tokenType = display ? 'html_block' : 'html_inline';
 
-			if (isBlockRunner || display) { // Use block token if it's the block runner OR if it's display math
+			if (isBlockRunner || display) { // Use block token if block runner OR display math
 				const token = state.push(tokenType, '', 0);
 				token.content = renderedHTML;
-				token.block = display; // True only for display math
+				token.block = display;
 				token.map = [state.line, finalLine];
-				if (isBlockRunner) state.line = finalLine + 1; // Advance block parser line
-				else state.pos = finalEnd + rightLen; // Advance inline position if it successfully parsed a block token
+				if (isBlockRunner) state.line = finalLine + 1;
+				else state.pos = finalEnd + rightLen;
 			} else {
 				const token = state.push(tokenType, '', 0);
 				token.content = renderedHTML;
-				state.pos = finalEnd + rightLen; // Advance inline parser position
+				state.pos = finalEnd + rightLen;
 			}
 		} catch (err) {
 			console.error('KaTeX rendering error:', err);
@@ -369,9 +356,7 @@ function mdKatexCombinedRule() {
 			if (isBlockRunner) {
 				token.block = display;
 				state.line = finalLine + 1;
-			} else {
-				state.pos = finalEnd + rightLen;
-			}
+			} else state.pos = finalEnd + rightLen;
 		}
 
 		return true;

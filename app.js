@@ -214,150 +214,51 @@ function addSources(c, jqEl) {
 	jqEl.tooltip({show: false, hide: false})
 }
 
-// markdown-it KaTeX Combined Plugin
+// markdown-it KaTeX plugin
+const ALL_DELIMITERS = [
+	{left: '\\[', right: '\\]', display: true},
+	{left: '$$', right: '$$', display: true},
+	{left: '\\(', right: '\\)', display: false},
+	{left: '$', right: '$', display: false},
+];
+
 function mdKatex(md) {
-	// Register the combined function for both block and inline rule runners.
-	md.block.ruler.after('hr', 'katex_combined', mdKatexCombinedRule());
-	md.inline.ruler.after('text', 'katex_combined', mdKatexCombinedRule());
+	md.inline.ruler.after('text', 'katex_inline_only', mdKatexRule());
 }
 
-// Handles both block and inline math in a single function
-function mdKatexCombinedRule() {
-	const delimiters = [
-		{left: '\\[', right: '\\]', display: true},
-		{left: '$$', right: '$$', display: true},
-		{left: '\\(', right: '\\)', display: false},
-		{left: '$', right: '$', display: false},
-	];
-
+function mdKatexRule() {
 	return (state, silent) => {
-		// Determine context: Block runner uses 'bMarks'
-		const isBlockRunner = Object.prototype.hasOwnProperty.call(state, 'bMarks');
-
-		const start = isBlockRunner ? state.bMarks[state.line] + state.tShift[state.line] : state.pos;
-		const posMax = isBlockRunner ? state.eMarks[state.line] : state.posMax;
-
+		const start = state.pos;
 		let delimiter = null;
-		for (const d of delimiters) { // Find the matching opening delimiter
-			if (state.src.slice(start).startsWith(d.left)) {
-				delimiter = d;
-				break;
-			}
-		}
+		for (const d of ALL_DELIMITERS) {if (state.src.slice(start).startsWith(d.left)) {delimiter = d; break;}}
 		if (!delimiter) return false;
 
 		const {left, right, display} = delimiter;
-		const leftLen = left.length;
 		const rightLen = right.length;
-		const isDisplayMath = display;
+		const contentStart = start + left.length;
+		let endPos = contentStart;
 
-		let contentStart = start + leftLen;
-		let finalEnd = -1;
-		let finalLine = state.line;
-		let mathContent = '';
-
-		// --- Block (Display) Math Logic (for \[...\] and $$...$$) ---
-		if (isDisplayMath) {
-			let currentLineEnd = state.eMarks[state.line] || state.posMax;
-			let searchArea = state.src.slice(contentStart, currentLineEnd);
-			let singleLineEnd = searchArea.indexOf(right);
-
-			if (isBlockRunner && singleLineEnd !== -1 && contentStart + singleLineEnd + rightLen === currentLineEnd) {
-				// Case 1: Single-line block success
-				finalEnd = contentStart + singleLineEnd;
-				finalLine = state.line;
-				mathContent = state.src.slice(contentStart, finalEnd).trim();
-			} else if (isBlockRunner) {
-				// Case 2: Multi-line search
-				let nextLine = state.line;
-				while (++nextLine < state.lineMax) {
-					const nextLineMax = state.eMarks[nextLine];
-					const closingPos = nextLineMax - rightLen;
-
-					if (closingPos >= state.bMarks[nextLine] && state.src.slice(closingPos, nextLineMax) === right) {
-						finalEnd = nextLineMax - rightLen;
-						finalLine = nextLine;
-						contentStart = start + leftLen;
-						mathContent = state.src.slice(contentStart, finalEnd).trim();
-						break;
-					}
-				}
-			}
-			if (finalEnd === -1 && isBlockRunner) return false;
-
-			// Case 3: Inline runner fallback for display delimiter
-			if (finalEnd === -1 && !isBlockRunner) {
-				let endPos = start + leftLen;
-				while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) endPos++;
-				if (endPos >= state.posMax) return false;
-				finalEnd = endPos;
-				mathContent = state.src.slice(contentStart, finalEnd).trim();
-			}
+		while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) {
+			endPos += (state.src.charCodeAt(endPos) === 0x5C ? 2 : 1);
 		}
+		if (endPos >= state.posMax) return false;
 
-		// --- Inline Math Logic (for $.$, \(.\)) ---
-		else {
-			// Find closing delimiter (always an inline search)
-			let endPos = start + leftLen;
-			while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) endPos++;
-			if (endPos >= state.posMax) return false;
+		const mathContent = state.src.slice(contentStart, endPos).trim();
 
-			finalEnd = endPos;
-			mathContent = state.src.slice(contentStart, finalEnd).trim();
+		if (left === '$' && (/[a-zA-Z0-9_]/.test(state.src.charAt(start - 1)) || /[a-zA-Z0-9_]/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0)) return false;
 
-			// Custom safety check for $...$
-			if (left === '$' && right === '$') {
-				const charBefore = state.src.charCodeAt(start - 1);
-				if (charBefore && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charBefore)))) return false;
+		if (silent) {state.pos = endPos + rightLen; return true;}
 
-				const charAfter = state.src.charCodeAt(finalEnd + rightLen);
-				if (charAfter && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charAfter)))) return false;
-
-				if (mathContent.length === 0) return false;
-			}
-		}
-
-		if (finalEnd === -1) return false; // Safety check
-
-		if (silent) {
-			if (isBlockRunner) state.line = finalLine + 1;
-			else state.pos = finalEnd + rightLen;
-			return true;
-		}
-
-		// --- Render and Token Push ---
+		let renderedHTML;
 		try {
-			const renderedHTML = katex.renderToString(mathContent, {
-				throwOnError: false,
-				output: 'mathml',
-				displayMode: display
-			});
-
-			const tokenType = display ? 'html_block' : 'html_inline';
-
-			if (isBlockRunner || display) { // Use block token if block runner OR display math
-				const token = state.push(tokenType, '', 0);
-				token.content = renderedHTML;
-				token.block = display;
-				token.map = [state.line, finalLine];
-				if (isBlockRunner) state.line = finalLine + 1;
-				else state.pos = finalEnd + rightLen;
-			} else {
-				const token = state.push(tokenType, '', 0);
-				token.content = renderedHTML;
-				state.pos = finalEnd + rightLen;
-			}
+			renderedHTML = katex.renderToString(mathContent, { throwOnError: false, output: 'html', displayMode: display });
 		} catch (err) {
-			console.error('KaTeX rendering error:', err);
-			const tokenType = display ? 'html_block' : 'text';
-			const token = state.push(tokenType, '', 0);
-			token.content = `[KaTeX ERROR: ${err.message}]`;
-
-			if (isBlockRunner) {
-				token.block = display;
-				state.line = finalLine + 1;
-			} else state.pos = finalEnd + rightLen;
+			renderedHTML = `[KaTeX ERROR: ${err.message}]`;
 		}
+
+		const token = state.push('html_inline', '', 0);
+		token.content = renderedHTML;
+		state.pos = endPos + rightLen;
 
 		return true;
 	};

@@ -214,56 +214,166 @@ function addSources(c, jqEl) {
 	jqEl.tooltip({show: false, hide: false})
 }
 
-// custom md katex plugin
+// markdown-it KaTeX Combined Plugin
 function mdKatex(md) {
-	md.inline.ruler.after('text', 'katex_plugin', mdKatexRule());
+	// Register the combined function for both block and inline rule runners.
+	// The rule determines the rendering mode internally based on the delimiter.
+	md.block.ruler.after('hr', 'katex_combined', mdKatexCombinedRule());
+	md.inline.ruler.after('text', 'katex_combined', mdKatexCombinedRule());
 }
 
-function mdKatexRule() {
-	let options = {
-		delimiters: [
-			{left: '\\[', right: '\\]', display: true}, // block
-			{left: '\\(', right: '\\)', display: false}, // inline
-			{left: '$$', right: '$$', display: true},
-			{left: '$', right: '$', display: false},
-		]
-	}
+// Handles both block and inline math in a single function
+function mdKatexCombinedRule() {
+	const delimiters = [
+		{left: '\\[', right: '\\]', display: true}, // block
+		{left: '$$', right: '$$', display: true},
+		{left: '\\(', right: '\\)', display: false}, // inline
+		{left: '$', right: '$', display: false},
+	];
+
 	return (state, silent) => {
-		const posMax = state.posMax
-		const pos = state.pos
-		for (const {left, right, display} of options.delimiters) {
-			if (!state.src.slice(pos).startsWith(left)) continue
-			let endPos = pos + left.length
-			while (endPos < posMax && !state.src.slice(endPos).startsWith(right)) endPos++
-			if (endPos >= posMax) continue
-			if (left === '$' && right === '$') { // error prone $ delimiter
-				const charBefore = state.src.charCodeAt(pos - 1); // word char before start $, e.g. word$math
-				if (charBefore && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charBefore)))) return false;
-				const charAfter = state.src.charCodeAt(endPos + right.length); // word char after end $, e.g. math$word
-				if (charAfter && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charAfter)))) return false;
-				const mathContent = state.src.slice(pos + left.length, endPos).trim(); // empty, e.g. $$ or $ $
-				if (mathContent.length === 0) return false;
+		// Determine context once at the start
+		const isBlockRunner = Object.prototype.hasOwnProperty.call(state, 'bMarks');
+
+		// Block runners use line markers; Inline runners use position markers
+		const start = isBlockRunner ? state.bMarks[state.line] + state.tShift[state.line] : state.pos;
+		const posMax = isBlockRunner ? state.eMarks[state.line] : state.posMax;
+
+		let delimiter = null;
+		for (const d of delimiters) { // Find the matching opening delimiter
+			if (state.src.slice(start).startsWith(d.left)) {
+				delimiter = d;
+				break;
 			}
-			if (!silent) {
-				const mathContent = state.src.slice(pos + left.length, endPos)
-				let renderedHTML
-				try {
-					renderedHTML = katex.renderToString(mathContent, {
-						throwOnError: false,
-						output: 'mathml',
-						displayMode: display
-					})
-					const token = state.push('html_inline', '', 0)
-					token.content = renderedHTML
-				} catch (err) {
-					console.error('KaTeX rendering error:', err)
-					const token = state.push('text', '', 0)
-					token.content = `[KaTeX ERROR: ${err.message}]`
+		}
+		if (!delimiter) return false;
+
+		const {left, right, display} = delimiter;
+		const leftLen = left.length;
+		const rightLen = right.length;
+		const isDisplayMath = display; // Use the delimiter's setting to determine render mode
+
+		let contentStart = start + leftLen;
+		let finalEnd = -1;
+		let finalLine = state.line;
+		let mathContent = '';
+
+		// --- Block (Display) Math Logic (for \[...\] and $$...$$) ---
+		if (isDisplayMath) {
+			// Block logic must run first, even if we're in the inline runner,
+			// to correctly capture multi-line math or single-line blocks.
+
+			let currentLineEnd = state.eMarks[state.line] || state.posMax; // Use max if inline runner
+			let searchArea = state.src.slice(contentStart, currentLineEnd);
+			let singleLineEnd = searchArea.indexOf(right);
+
+			if (isBlockRunner && singleLineEnd !== -1 && contentStart + singleLineEnd + rightLen === currentLineEnd) {
+				// Case 1: Single-line block success (e.g., $$E=mc^2$$)
+				finalEnd = contentStart + singleLineEnd;
+				finalLine = state.line;
+				mathContent = state.src.slice(contentStart, finalEnd).trim();
+			} else if (isBlockRunner) {
+				// Case 2: Multi-line search (only run in the block context for clean line advancement)
+				let nextLine = state.line;
+				while (++nextLine < state.lineMax) {
+					const nextLineMax = state.eMarks[nextLine];
+					const closingPos = nextLineMax - rightLen;
+
+					if (closingPos >= state.bMarks[nextLine] && state.src.slice(closingPos, nextLineMax) === right) {
+						finalEnd = nextLineMax - rightLen;
+						finalLine = nextLine;
+						contentStart = start + leftLen;
+						mathContent = state.src.slice(contentStart, finalEnd).trim();
+						break;
+					}
 				}
 			}
-			state.pos = endPos + right.length
-			return true
+			// If finalEnd is still -1 after block checks, it fails.
+			if (finalEnd === -1 && isBlockRunner) return false;
+
+			// If the inline runner hits a display math delimiter, it's treated like a normal inline search (Case 3)
+			if (finalEnd === -1 && !isBlockRunner) {
+				let endPos = start + leftLen;
+				while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) {
+					endPos++;
+				}
+				if (endPos >= state.posMax) return false;
+				finalEnd = endPos;
+				mathContent = state.src.slice(contentStart, finalEnd).trim();
+			}
 		}
-		return false
-	}
+
+		// --- Inline Math Logic (for $.$, \(.\)) ---
+		else {
+			// Find closing delimiter (always an inline search)
+			let endPos = start + leftLen;
+			while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) {
+				endPos++;
+			}
+			if (endPos >= state.posMax) return false;
+
+			finalEnd = endPos;
+			mathContent = state.src.slice(contentStart, finalEnd).trim();
+
+			// Custom safety check for $...$
+			if (left === '$' && right === '$') {
+				const charBefore = state.src.charCodeAt(start - 1);
+				if (charBefore && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charBefore)))) return false;
+
+				const charAfter = state.src.charCodeAt(finalEnd + rightLen);
+				if (charAfter && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charAfter)))) return false;
+
+				if (mathContent.length === 0) return false;
+			}
+		}
+
+		if (finalEnd === -1) return false; // Should not happen with the logic above, but for safety
+
+		if (silent) {
+			if (isBlockRunner) {
+				state.line = finalLine + 1;
+			} else {
+				state.pos = finalEnd + rightLen;
+			}
+			return true;
+		}
+
+		// --- Render and Token Push ---
+		try {
+			const renderedHTML = katex.renderToString(mathContent, {
+				throwOnError: false,
+				output: 'mathml',
+				displayMode: display // Uses the delimiter's setting (true for $$, \[)
+			});
+
+			const tokenType = display ? 'html_block' : 'html_inline';
+
+			if (isBlockRunner || display) { // Use block token if it's the block runner OR if it's display math
+				const token = state.push(tokenType, '', 0);
+				token.content = renderedHTML;
+				token.block = display; // True only for display math
+				token.map = [state.line, finalLine];
+				if (isBlockRunner) state.line = finalLine + 1; // Advance block parser line
+				else state.pos = finalEnd + rightLen; // Advance inline position if it successfully parsed a block token
+			} else {
+				const token = state.push(tokenType, '', 0);
+				token.content = renderedHTML;
+				state.pos = finalEnd + rightLen; // Advance inline parser position
+			}
+		} catch (err) {
+			console.error('KaTeX rendering error:', err);
+			const tokenType = display ? 'html_block' : 'text';
+			const token = state.push(tokenType, '', 0);
+			token.content = `[KaTeX ERROR: ${err.message}]`;
+
+			if (isBlockRunner) {
+				token.block = display;
+				state.line = finalLine + 1;
+			} else {
+				state.pos = finalEnd + rightLen;
+			}
+		}
+
+		return true;
+	};
 }

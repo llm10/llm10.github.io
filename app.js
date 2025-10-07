@@ -223,7 +223,7 @@ const ALL_DELIMITERS = [
 ];
 
 function mdKatex(md) {
-	md.inline.ruler.after('text', 'katex_inline_only', mdKatexRule());
+	md.inline.ruler.after('text', 'mdKatex', mdKatexRule());
 }
 
 function mdKatexRule() {

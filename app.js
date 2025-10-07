@@ -221,12 +221,11 @@ function mdKatex(md) {
 
 function mdKatexRule() {
 	let options = {
-		// recommended: leave $ disabled and add this to LLM system prompt: use LaTeX \[...\] and \(...\) for math
 		delimiters: [
 			{left: '\\[', right: '\\]', display: true}, // block
 			{left: '\\(', right: '\\)', display: false}, // inline
 			{left: '$$', right: '$$', display: true},
-			// {left: '$', right: '$', display: false}, // error prone
+			{left: '$', right: '$', display: false},
 		]
 	}
 	return (state, silent) => {
@@ -237,6 +236,16 @@ function mdKatexRule() {
 			let endPos = pos + left.length
 			while (endPos < posMax && !state.src.slice(endPos).startsWith(right)) endPos++
 			if (endPos >= posMax) continue
+
+			if (left === '$' && right === '$') {
+				const charBefore = state.src.charCodeAt(pos - 1); // word char before start $, e.g. word$math
+				if (charBefore && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charBefore)))) return false;
+				const charAfter = state.src.charCodeAt(endPos + right.length); // word char after end $, e.g. math$word
+				if (charAfter && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charAfter)))) return false;
+				const mathContent = state.src.slice(pos + left.length, endPos).trim(); // empty, e.g. $$ or $ $
+				if (mathContent.length === 0) return false;
+			}
+
 			if (!silent) {
 				const mathContent = state.src.slice(pos + left.length, endPos)
 				let renderedHTML

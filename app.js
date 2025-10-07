@@ -22,13 +22,6 @@ const linkifyOptions = {
 	}
 }
 
-window.MathJax = {
-	tex: {
-		inlineMath: [['$', '$'], ['\\(', '\\)']],
-		displayMath: [['$$', '$$'], ['\\[', '\\]']]
-	}
-}
-
 let user = location.protocol === 'file:' ? 'llm10' /* enter github username for local dev */ : location.host.split('.')[0]
 let id = location.search.substring(1)
 let data, nHist

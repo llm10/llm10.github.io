@@ -223,6 +223,7 @@ const ALL_DELIMITERS = [
 ];
 
 function mdKatex(md) {
+	// handle all as inline - css will format blocks anyway and avoids some issues
 	md.inline.ruler.after('text', 'mdKatex', mdKatexRule());
 }
 

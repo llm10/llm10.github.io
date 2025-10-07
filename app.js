@@ -236,8 +236,7 @@ function mdKatexRule() {
 			let endPos = pos + left.length
 			while (endPos < posMax && !state.src.slice(endPos).startsWith(right)) endPos++
 			if (endPos >= posMax) continue
-
-			if (left === '$' && right === '$') {
+			if (left === '$' && right === '$') { // error prone $ delimiter
 				const charBefore = state.src.charCodeAt(pos - 1); // word char before start $, e.g. word$math
 				if (charBefore && (/[a-zA-Z0-9_]/.test(String.fromCharCode(charBefore)))) return false;
 				const charAfter = state.src.charCodeAt(endPos + right.length); // word char after end $, e.g. math$word
@@ -245,7 +244,6 @@ function mdKatexRule() {
 				const mathContent = state.src.slice(pos + left.length, endPos).trim(); // empty, e.g. $$ or $ $
 				if (mathContent.length === 0) return false;
 			}
-
 			if (!silent) {
 				const mathContent = state.src.slice(pos + left.length, endPos)
 				let renderedHTML

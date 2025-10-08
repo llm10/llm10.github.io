@@ -239,7 +239,10 @@ function mdKatexRule() {
 
 		const mathContent = state.src.slice(contentStart, endPos).trim();
 
-		if (left === '$' && (/[a-zA-Z0-9_]/.test(state.src.charAt(start - 1)) || /[a-zA-Z0-9_]/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0) && !mathContent.match(/^\[?\\\w+]?$/)) return false; // $ error avoidance
+		if (left === '$' // $ error avoidance
+			&& (/\w/.test(state.src.charAt(start - 1)) || /\w/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0 )
+			&& !mathContent.match(/^\[?\\[a-z]+]?$/) // allow any single word $\command$
+		) return false;
 
 		if (silent) {state.pos = endPos + rightLen; return true;}
 

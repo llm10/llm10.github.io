@@ -239,7 +239,7 @@ function mdKatexRule() {
 
 		const mathContent = state.src.slice(contentStart, endPos).trim();
 
-		if (left === '$' && (/[a-zA-Z0-9_]/.test(state.src.charAt(start - 1)) || /[a-zA-Z0-9_]/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0)) return false;
+		if (left === '$' && (/[a-zA-Z0-9_]/.test(state.src.charAt(start - 1)) || /[a-zA-Z0-9_]/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0) && mathContent !== '\\approx') return false; // $ error avoidance
 
 		if (silent) {state.pos = endPos + rightLen; return true;}
 

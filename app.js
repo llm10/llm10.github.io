@@ -224,7 +224,12 @@ function mdKatexRule() {
 	return (state, silent) => {
 		const start = state.pos;
 		let delimiter = null;
-		for (const d of ALL_DELIMITERS) {if (state.src.slice(start).startsWith(d.left)) {delimiter = d; break;}}
+		for (const d of ALL_DELIMITERS) {
+			if (state.src.slice(start).startsWith(d.left)) {
+				delimiter = d;
+				break;
+			}
+		}
 		if (!delimiter) return false;
 
 		const {left, right, display} = delimiter;
@@ -240,15 +245,18 @@ function mdKatexRule() {
 		const mathContent = state.src.slice(contentStart, endPos).trim();
 
 		if (left === '$' // $ error avoidance
-			&& (/\w/.test(state.src.charAt(start - 1)) || /\w/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0 )
+			&& (/\w/.test(state.src.charAt(start - 1)) || /\w/.test(state.src.charAt(endPos + rightLen)) || mathContent.length === 0)
 			&& !mathContent.match(/^\[?\\[a-z]+]?$/) // allow any single word $\command$
 		) return false;
 
-		if (silent) {state.pos = endPos + rightLen; return true;}
+		if (silent) {
+			state.pos = endPos + rightLen;
+			return true;
+		}
 
 		let renderedHTML;
 		try {
-			renderedHTML = katex.renderToString(mathContent, { throwOnError: false, output: 'html', displayMode: display });
+			renderedHTML = katex.renderToString(mathContent, {throwOnError: false, output: 'html', displayMode: display});
 		} catch (err) {
 			renderedHTML = `[KaTeX ERROR: ${err.message}]`;
 		}

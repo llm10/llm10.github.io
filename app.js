@@ -58,7 +58,6 @@ if (id) {
 				let a = data.r[data.r.length - 1].text || data.r[data.r.length - 1][2]
 				document.title = q
 
-				console.log('linkifyOptions', linkifyOptions)
 				$('#cur_h').html(linkifyHtml(md.render(q), linkifyOptions))
 				$('#cur_r').html(linkifyHtml(md.render(a), linkifyOptions))
 				hljs.highlightAll();
@@ -237,9 +236,7 @@ function mdKatexRule() {
 		const contentStart = start + left.length;
 		let endPos = contentStart;
 
-		while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) {
-			endPos += (state.src.charCodeAt(endPos) === 0x5C ? 2 : 1);
-		}
+		while (endPos < state.posMax && !state.src.slice(endPos).startsWith(right)) endPos += (state.src.charCodeAt(endPos) === 0x5C ? 2 : 1);
 		if (endPos >= state.posMax) return false;
 
 		const mathContent = state.src.slice(contentStart, endPos).trim();

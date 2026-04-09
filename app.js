@@ -51,10 +51,10 @@ if (id) {
 						]
 						*/
 				console.log('data:', data)
-				data.s_lc = data.s.toLowerCase()
-				$('head').prepend('<link rel="icon" href="images/' + data.s_lc + '-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/' + data.s_lc + '-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
-				document.getElementById('logo-' + data.s_lc).style = 'display:block'; // jq append was slow
-				if(data.m) document.getElementById('logo-' + data.s_lc).title = data.m
+				const m2 = data.m ? data.m.split('-')[0] : data.s.toLowerCase()
+				$('head').prepend('<link rel="icon" href="images/' + m2 + '-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)"/>\n<link rel="icon" href="images/' + m2 + '-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)"/>')
+				document.getElementById('logo-' + m2).style = 'display:block'; // jq append was slow
+				if(data.m) document.getElementById('logo-' + m2).title = data.m
 
 				let q = data.r[data.r.length - 2].text || data.r[data.r.length - 2][2] // [2] deprecated
 				let a = data.r[data.r.length - 1].text || data.r[data.r.length - 1][2]

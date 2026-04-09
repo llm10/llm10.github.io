@@ -113,7 +113,7 @@ a, a:visited {
     cursor: pointer;
 }
 
-#logo-chatgpt, #logo-grok, #logo-gemini {
+#logo-gpt, #logo-grok, #logo-gemini {
     display: none;
 }
 
